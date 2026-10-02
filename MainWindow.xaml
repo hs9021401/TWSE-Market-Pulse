@@ -1,0 +1,630 @@
+<Window x:Class="TwseWidget.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:TwseWidget.Controls"
+        Title="TWSE Market Pulse"
+        Icon="pack://application:,,,/TwseWidget;component/Assets/TwseWidget.ico"
+        Width="360"
+        Height="240"
+        MinWidth="320"
+        MinHeight="240"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="CanResizeWithGrip"
+        Topmost="True"
+        ShowInTaskbar="False"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        Loaded="Window_Loaded"
+        Closing="Window_Closing"
+        LocationChanged="Window_PlacementChanged"
+        SizeChanged="Window_PlacementChanged">
+    <Window.Resources>
+        <SolidColorBrush x:Key="ShellBrush" Color="#0A1320" />
+        <SolidColorBrush x:Key="PanelBrush" Color="#0E1B2B" />
+        <SolidColorBrush x:Key="PanelBrushStrong" Color="#12243A" />
+        <SolidColorBrush x:Key="LineBrush" Color="#20384F" />
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#F3F8FC" />
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#96ABC0" />
+        <SolidColorBrush x:Key="TextMutedBrush" Color="#607890" />
+        <SolidColorBrush x:Key="CyanBrush" Color="#4CD9FF" />
+        <SolidColorBrush x:Key="GreenBrush" Color="#39F2B7" />
+        <SolidColorBrush x:Key="PurpleBrush" Color="#A987FF" />
+
+        <Style x:Key="ChromeButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="30" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="3,0,0,0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#183A51" />
+                                <Setter Property="Foreground" Value="{StaticResource CyanBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Opacity" Value="0.72" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="MiniLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        </Style>
+
+        <Style x:Key="MetricLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        </Style>
+
+        <Style x:Key="MetricValueStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        </Style>
+
+        <Style x:Key="PillStyle" TargetType="Border">
+            <Setter Property="Background" Value="#14283B" />
+            <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="9,5" />
+        </Style>
+
+        <Style x:Key="NeonComboBoxItemStyle" TargetType="ComboBoxItem">
+            <Setter Property="Padding" Value="7,4" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Background" Value="#102238" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="ItemBorder"
+                                Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}"
+                                CornerRadius="5"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              ContentStringFormat="{TemplateBinding ContentStringFormat}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#1B4965" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#1D5D78" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <ControlTemplate x:Key="NeonComboBoxTemplate" TargetType="ComboBox">
+            <Grid>
+                <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="7"
+                        SnapsToDevicePixels="True">
+                    <ToggleButton x:Name="DropDownToggle"
+                                  Focusable="False"
+                                  Background="Transparent"
+                                  BorderThickness="0"
+                                  IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                  ClickMode="Press">
+                        <ToggleButton.Template>
+                            <ControlTemplate TargetType="ToggleButton">
+                                <Border Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="7">
+                                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                      Content="{TemplateBinding Content}"
+                                                      ContentTemplate="{TemplateBinding ContentTemplate}" />
+                                </Border>
+                            </ControlTemplate>
+                        </ToggleButton.Template>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="18"/>
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter x:Name="ContentSite"
+                                              IsHitTestVisible="False"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"
+                                              Margin="{TemplateBinding Padding}"
+                                              HorizontalAlignment="Stretch"
+                                              ClipToBounds="True"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                            <Path Grid.Column="1" Data="M 0 0 L 4 4 L 8 0 Z"
+                                  Fill="{TemplateBinding Foreground}"
+                                  Width="8"
+                                  Height="4"
+                                  HorizontalAlignment="Right"
+                                  VerticalAlignment="Center"
+                                  Margin="0,0,8,0"
+                                  IsHitTestVisible="False" />
+                        </Grid>
+                    </ToggleButton>
+                </Border>
+
+                <Popup x:Name="PART_Popup"
+                       AllowsTransparency="True"
+                       Focusable="False"
+                       Placement="Bottom"
+                       IsOpen="{TemplateBinding IsDropDownOpen}"
+                       PopupAnimation="Fade"
+                       StaysOpen="False">
+                    <Border Width="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                            Background="#102238"
+                            BorderBrush="#37617B"
+                            BorderThickness="1"
+                            CornerRadius="7"
+                            Padding="2"
+                            SnapsToDevicePixels="True">
+                        <ScrollViewer MaxHeight="150"
+                                      CanContentScroll="True"
+                                      VerticalScrollBarVisibility="Auto">
+                            <ItemsPresenter />
+                        </ScrollViewer>
+                    </Border>
+                </Popup>
+            </Grid>
+        </ControlTemplate>
+
+        <Style x:Key="CompactComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Height" Value="25" />
+            <Setter Property="Padding" Value="7,0" />
+            <Setter Property="Background" Value="#14283B" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="ItemContainerStyle" Value="{StaticResource NeonComboBoxItemStyle}" />
+            <Setter Property="Template" Value="{StaticResource NeonComboBoxTemplate}" />
+        </Style>
+
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Padding" Value="7,4" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Background" Value="#102238" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#183A51" />
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#1A4960" />
+                    <Setter Property="Foreground" Value="{StaticResource CyanBrush}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="7,4" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Background" Value="#102238" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#183A51" />
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#1A4960" />
+                    <Setter Property="Foreground" Value="{StaticResource CyanBrush}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <DataTemplate x:Key="CompactInstrumentTemplate">
+            <TextBlock Text="{Binding DisplayText}" TextTrimming="CharacterEllipsis"
+                       FontSize="9" Foreground="{StaticResource TextPrimaryBrush}"/>
+        </DataTemplate>
+        <Style TargetType="ContextMenu">
+            <Setter Property="Background" Value="#102238"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="#37617B"/>
+        </Style>
+        <Style TargetType="MenuItem">
+            <Setter Property="Background" Value="#102238"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="MenuBorder" Background="{TemplateBinding Background}" CornerRadius="5" Padding="7,5">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="20"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <TextBlock x:Name="CheckMark" Text="✓" Visibility="Hidden" Foreground="{StaticResource CyanBrush}"/>
+                                <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="MenuBorder" Property="Background" Value="#1B4965"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border x:Name="WindowShell"
+            Background="{StaticResource ShellBrush}"
+            BorderBrush="#2A4C66"
+            BorderThickness="1"
+            CornerRadius="20"
+            PreviewMouseLeftButtonDown="Window_PreviewMouseLeftButtonDown">
+        <Grid ClipToBounds="True">
+            <Canvas IsHitTestVisible="False" Opacity="0.85">
+                <Ellipse Canvas.Left="-120"
+                         Canvas.Top="-150"
+                         Width="370"
+                         Height="300"
+                         Fill="#102A9ADB" />
+                <Ellipse Canvas.Left="310"
+                         Canvas.Top="210"
+                         Width="250"
+                         Height="210"
+                         Fill="#0D5C44B7" />
+                <Ellipse Canvas.Left="-20"
+                         Canvas.Top="-28"
+                         Width="170"
+                         Height="170"
+                         Stroke="#244CD9FF"
+                         StrokeThickness="1" />
+            </Canvas>
+
+            <Grid x:Name="VariantHost">
+                <!-- Variant A: the default neon dashboard. -->
+                <Grid x:Name="VariantA" Margin="14,10,14,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="26" />
+                        <RowDefinition Height="26" />
+                        <RowDefinition Height="25" />
+                        <RowDefinition Height="54" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="18" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="24" Height="24" CornerRadius="8" Background="#1B3B59">
+                                <TextBlock Text="+"
+                                           FontFamily="Consolas"
+                                           FontSize="16"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource CyanBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel Margin="8,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="TWSE / MARKET PULSE"
+                                           FontFamily="Consolas"
+                                           FontSize="9"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock Text="{Binding IndexTitleText}"
+                                           Style="{StaticResource MiniLabelStyle}"
+                                           Margin="0,2,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#152B3C" BorderBrush="#28566A" BorderThickness="1" CornerRadius="8" Padding="6,3">
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse Width="6" Height="6" Fill="{Binding StatusBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding StatusText}"
+                                               FontFamily="Consolas"
+                                               FontSize="8"
+                                               FontWeight="Bold"
+                                               Foreground="{Binding StatusBrush}"
+                                               Margin="6,0,0,0" />
+                                </StackPanel>
+                            </Border>
+                            <TextBlock Text="{Binding TimeText}"
+                                       FontFamily="Consolas"
+                                       FontSize="10"
+                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center"
+                                       Margin="7,0,2,0" />
+                            <Button Content="↻" Style="{StaticResource ChromeButtonStyle}" Width="24" Height="22" Click="Refresh_Click" ToolTip="立即同步" />
+                            <Button Content="×" Style="{StaticResource ChromeButtonStyle}" Width="24" Height="22" Click="Close_Click" ToolTip="隱藏到系統匣" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="1" Margin="0,1,0,1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border Background="#14283B"
+                                BorderBrush="{StaticResource LineBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="7,0">
+                            <Grid>
+                                <TextBox x:Name="SearchTextBox"
+                                         Background="Transparent"
+                                         BorderThickness="0"
+                                         Foreground="{StaticResource TextPrimaryBrush}"
+                                         CaretBrush="{StaticResource CyanBrush}"
+                                         FontFamily="Segoe UI"
+                                         FontSize="10"
+                                         VerticalContentAlignment="Center"
+                                         ToolTip="輸入股票代號或名稱（至少 1 個字）"
+                                         TextChanged="SearchTextBox_TextChanged"
+                                         KeyDown="SearchTextBox_KeyDown" />
+                                <TextBlock x:Name="SearchPlaceholder"
+                                           Text="搜尋代號 / 名稱…"
+                                           Style="{StaticResource MiniLabelStyle}"
+                                           IsHitTestVisible="False"
+                                           VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+                        <Button Grid.Column="1"
+                                Content="+"
+                                Style="{StaticResource ChromeButtonStyle}"
+                                Width="27"
+                                Height="23"
+                                Margin="4,0,0,0"
+                                FontSize="16"
+                                Click="AddWatchlist_Click"
+                                ToolTip="加入自選" />
+                    </Grid>
+
+                    <ListBox x:Name="SearchResultsList"
+                             Grid.Row="1"
+                             Grid.RowSpan="3"
+                             Margin="0,27,31,0"
+                             MaxHeight="92"
+                             VerticalAlignment="Top"
+                             Panel.ZIndex="100"
+                             Visibility="Collapsed"
+                             Background="#E61A2B3D"
+                             BorderBrush="#37617B"
+                             BorderThickness="1"
+                             FontSize="10"
+                             SelectionChanged="SearchResultsList_SelectionChanged">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Code}"
+                                               FontFamily="Consolas"
+                                               Foreground="{StaticResource CyanBrush}" />
+                                    <TextBlock Text="{Binding Name}"
+                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               Margin="8,0,0,0" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <Grid Grid.Row="2" Margin="0,1,0,1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="24" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="24" />
+                        </Grid.ColumnDefinitions>
+                        <Button Content="‹"
+                                Style="{StaticResource ChromeButtonStyle}"
+                                Width="22"
+                                Height="23"
+                                Margin="0"
+                                FontSize="17"
+                                Click="PreviousInstrument_Click"
+                                ToolTip="上一檔自選" />
+                        <ComboBox x:Name="WatchlistComboBox"
+                                  Grid.Column="1"
+                                  Style="{StaticResource CompactComboBoxStyle}"
+                                  SelectionChanged="WatchlistComboBox_SelectionChanged"
+                                  ToolTip="切換自選標的">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding DisplayText}"
+                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               FontFamily="Consolas"
+                                               FontSize="10" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <Button Grid.Column="2"
+                                Content="›"
+                                Style="{StaticResource ChromeButtonStyle}"
+                                Width="22"
+                                Height="23"
+                                Margin="2,0,0,0"
+                                FontSize="17"
+                                Click="NextInstrument_Click"
+                                ToolTip="下一檔自選" />
+                    </Grid>
+
+                    <Grid Grid.Row="3" Margin="0,1,0,2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding ValueText}"
+                                           FontFamily="Consolas"
+                                           FontSize="29"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           TextOptions.TextFormattingMode="Display" />
+                                <TextBlock Text="{Binding UnitText}"
+                                           FontFamily="Consolas"
+                                           FontSize="10"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           VerticalAlignment="Bottom"
+                                           Margin="6,0,0,6" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="2,0,0,0">
+                                <TextBlock Text="{Binding TrendGlyph}" FontFamily="Segoe UI" FontSize="10" Foreground="{Binding ChangeBrush}" />
+                                <TextBlock Text="{Binding ChangeText}" FontFamily="Consolas" FontSize="10" Foreground="{Binding ChangeBrush}" Margin="4,0,0,0" />
+                                <TextBlock Text="{Binding PercentText}" FontFamily="Consolas" FontSize="10" Foreground="{Binding ChangeBrush}" Margin="8,0,0,0" />
+                                <TextBlock Text="vs prev" Style="{StaticResource MiniLabelStyle}" VerticalAlignment="Center" Margin="7,0,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Border Background="#15382E" BorderBrush="#286D58" BorderThickness="1" CornerRadius="9" Padding="9,5" HorizontalAlignment="Right">
+                                <TextBlock Text="{Binding SessionBadgeText}" FontFamily="Consolas" FontSize="9" FontWeight="Bold" Foreground="{StaticResource GreenBrush}" />
+                            </Border>
+                            <TextBlock Text="{Binding UpdateTimeText}" Style="{StaticResource MiniLabelStyle}" HorizontalAlignment="Right" Margin="0,4,0,0" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Grid.Row="4" Background="#0D1A2A" BorderBrush="#203C55" BorderThickness="1" CornerRadius="12" Padding="7,7,7,6">
+                        <Grid>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Top" IsHitTestVisible="False">
+                                <TextBlock Text="SESSION TRACE" FontFamily="Consolas" FontSize="8" FontWeight="Bold" Foreground="{StaticResource CyanBrush}" />
+                                <TextBlock Text="{Binding RangeText}" Style="{StaticResource MiniLabelStyle}" Margin="8,0,0,0" />
+                            </StackPanel>
+                            <controls:MarketChart x:Name="ChartA" Margin="0,16,0,0" Cursor="Cross" />
+                            <TextBlock Text="{Binding ErrorText}" Style="{StaticResource MiniLabelStyle}" Foreground="#FFB86B" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,4,0" />
+                        </Grid>
+                    </Border>
+
+                    <Grid Grid.Row="5" Margin="0,2,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="TWSE MIS  /  AUTO 20s" Style="{StaticResource MiniLabelStyle}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button Content="▦" Style="{StaticResource ChromeButtonStyle}" Width="26" Height="18" Click="LayoutPicker_Click" ToolTip="切換版面"/>
+                            <Button Content="{Binding CompactPinText}" Style="{StaticResource ChromeButtonStyle}" Width="38" Height="18" FontFamily="Consolas" FontSize="9" Click="ToggleTopmost_Click" ToolTip="{Binding TopmostText}"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+
+                <!-- Compact layouts share quotes, watchlist and chart history with the full dashboard. -->
+                <Grid x:Name="MiniLayout" Visibility="Collapsed" Margin="11,9,11,9">
+                    <Grid.RowDefinitions><RowDefinition Height="24"/><RowDefinition Height="35"/><RowDefinition Height="*"/><RowDefinition Height="20"/></Grid.RowDefinitions>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="22"/><ColumnDefinition Width="*"/><ColumnDefinition Width="22"/>
+                            <ColumnDefinition Width="22"/><ColumnDefinition Width="22"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Content="‹" Style="{StaticResource ChromeButtonStyle}" Width="22" Height="22" Margin="0" Click="PreviousInstrument_Click" ToolTip="上一檔自選"/>
+                        <ComboBox x:Name="MiniWatchlistComboBox" Grid.Column="1" Style="{StaticResource CompactComboBoxStyle}" Height="22" FontSize="9"
+                                  ItemTemplate="{StaticResource CompactInstrumentTemplate}" SelectionChanged="WatchlistComboBox_SelectionChanged"
+                                  ToolTip="{Binding SelectedItem.DisplayText, RelativeSource={RelativeSource Self}}" Padding="5,0"/>
+                        <Button Grid.Column="2" Content="›" Style="{StaticResource ChromeButtonStyle}" Width="22" Height="22" Margin="0" Click="NextInstrument_Click" ToolTip="下一檔自選"/>
+                        <Button Grid.Column="3" Content="▦" Style="{StaticResource ChromeButtonStyle}" Width="22" Height="22" Margin="0" Click="LayoutPicker_Click" ToolTip="切換版面"/>
+                        <Button Grid.Column="4" Content="×" Style="{StaticResource ChromeButtonStyle}" Width="22" Height="22" Margin="0" Click="Close_Click" ToolTip="隱藏到系統匣"/>
+                    </Grid>
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,8,0">
+                            <TextBlock Text="{Binding ValueText}" FontFamily="Consolas" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        </Viewbox>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <TextBlock Text="{Binding TrendGlyph}" Foreground="{Binding ChangeBrush}" FontSize="10"/>
+                                <TextBlock Text="{Binding ChangeText}" Foreground="{Binding ChangeBrush}" FontFamily="Consolas" FontSize="11" Margin="4,0,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding PercentText}" Foreground="{Binding ChangeBrush}" FontFamily="Consolas" FontSize="10" HorizontalAlignment="Right"/>
+                        </StackPanel>
+                    </Grid>
+                    <Border Grid.Row="2" CornerRadius="8" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1">
+                        <controls:MarketChart x:Name="ChartMini" Presentation="Mini" Cursor="Cross"/>
+                    </Border>
+                    <Grid Grid.Row="3">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="22"/><ColumnDefinition Width="31"/></Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" ToolTip="{Binding CompactStatusDetailText}">
+                            <Ellipse Width="5" Height="5" Fill="{Binding StatusBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                            <TextBlock Text="{Binding CompactSessionText}" FontSize="9" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                        <TextBlock Grid.Column="1" Text="20s" FontFamily="Consolas" FontSize="9" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                        <Button Grid.Column="2" Content="↻" Style="{StaticResource ChromeButtonStyle}" Width="22" Height="20" Margin="0" Click="Refresh_Click" ToolTip="刷新行情與完整線圖"/>
+                        <Button Grid.Column="3" Content="{Binding CompactPinText}" Style="{StaticResource ChromeButtonStyle}" Width="31" Height="20" Margin="0" FontSize="8" Click="ToggleTopmost_Click" ToolTip="{Binding TopmostText}"/>
+                    </Grid>
+                </Grid>
+
+                <Grid x:Name="TickerLayout" Visibility="Collapsed" Margin="10,9,10,9">
+                    <Grid.RowDefinitions><RowDefinition Height="24"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="22"/><ColumnDefinition Width="*"/><ColumnDefinition Width="22"/>
+                            <ColumnDefinition Width="22"/><ColumnDefinition Width="22"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Content="‹" Style="{StaticResource ChromeButtonStyle}" Width="22" Height="22" Margin="0" Click="PreviousInstrument_Click" ToolTip="上一檔自選"/>
+                        <ComboBox x:Name="TickerWatchlistComboBox" Grid.Column="1" Style="{StaticResource CompactComboBoxStyle}" Height="22" FontSize="9"
+                                  ItemTemplate="{StaticResource CompactInstrumentTemplate}" SelectionChanged="WatchlistComboBox_SelectionChanged"
+                                  ToolTip="{Binding SelectedItem.DisplayText, RelativeSource={RelativeSource Self}}" Padding="5,0"/>
+                        <Button Grid.Column="2" Content="›" Style="{StaticResource ChromeButtonStyle}" Width="22" Height="22" Margin="0" Click="NextInstrument_Click" ToolTip="下一檔自選"/>
+                        <Button Grid.Column="3" Content="▦" Style="{StaticResource ChromeButtonStyle}" Width="22" Height="22" Margin="0" Click="LayoutPicker_Click" ToolTip="切換版面"/>
+                        <Button Grid.Column="4" Content="×" Style="{StaticResource ChromeButtonStyle}" Width="22" Height="22" Margin="0" Click="Close_Click" ToolTip="隱藏到系統匣"/>
+                    </Grid>
+                    <Grid Grid.Row="1" Margin="1,2,1,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="110"/><ColumnDefinition Width="63"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Grid Margin="0,0,6,0">
+                            <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="11"/></Grid.RowDefinitions>
+                            <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding ValueText}" FontFamily="Consolas" FontSize="26" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            </Viewbox>
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" ToolTip="{Binding CompactStatusDetailText}">
+                                <Ellipse Width="4" Height="4" Fill="{Binding StatusBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                <TextBlock Text="{Binding StatusText}" FontFamily="Consolas" FontSize="8" Foreground="{Binding StatusBrush}"/>
+                                <TextBlock Text=" · 20s" FontFamily="Consolas" FontSize="8" Foreground="{StaticResource TextMutedBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding ChangeText}" FontFamily="Consolas" FontSize="10" Foreground="{Binding ChangeBrush}"/>
+                            <TextBlock Text="{Binding PercentText}" FontFamily="Consolas" FontSize="10" Foreground="{Binding ChangeBrush}" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <Border Grid.Column="2" CornerRadius="7" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1">
+                            <controls:MarketChart x:Name="ChartTicker" Presentation="Ticker" Cursor="Cross"/>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

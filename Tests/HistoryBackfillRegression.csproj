@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TwseWidget.csproj" />
+    <None Update="Fixtures\intraday-0958.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Fixtures\stock-intraday.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
