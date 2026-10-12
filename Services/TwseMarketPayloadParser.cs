@@ -4,8 +4,33 @@ using TwseWidget.Models;
 
 namespace TwseWidget.Services;
 
+public readonly record struct LiveTradeQuote(decimal? Price, string? Time);
+
 public static class TwseMarketPayloadParser
 {
+    public static LiveTradeQuote ParseLiveTradeQuote(JsonElement item)
+    {
+        var rootPrice = ReadDecimal(item, "z");
+        if (rootPrice is not null)
+        {
+            return new LiveTradeQuote(rootPrice, ReadString(item, "t"));
+        }
+
+        if (item.TryGetProperty("trade", out var trade) &&
+            trade.ValueKind == JsonValueKind.Object)
+        {
+            var tradePrice = ReadDecimal(trade, "z");
+            if (tradePrice is not null)
+            {
+                return new LiveTradeQuote(
+                    tradePrice,
+                    ReadString(trade, "t") ?? ReadString(item, "t"));
+            }
+        }
+
+        return new LiveTradeQuote(null, ReadString(item, "t"));
+    }
+
     public static IReadOnlyList<ChartPoint> ParseIntradayHistory(
         string payload,
         DateTimeOffset fallbackDate)

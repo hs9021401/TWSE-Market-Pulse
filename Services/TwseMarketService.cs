@@ -59,7 +59,8 @@ public sealed class TwseMarketService : IDisposable
         }
 
         var item = messages[0];
-        var liveCurrent = ReadDecimal(item, "z");
+        var liveTrade = TwseMarketPayloadParser.ParseLiveTradeQuote(item);
+        var liveCurrent = liveTrade.Price;
         var hasPreviousSnapshot = _lastSnapshots.TryGetValue(
             instrument.Key,
             out var previousSnapshot);
@@ -77,7 +78,7 @@ public sealed class TwseMarketService : IDisposable
         var high = ReadDecimal(item, "h") ?? current.Value;
         var low = ReadDecimal(item, "l") ?? current.Value;
         var date = ReadString(item, "d");
-        var time = ReadString(item, "t") ?? ReadString(item, "%") ?? "--:--:--";
+        var time = liveTrade.Time ?? ReadString(item, "%") ?? "--:--:--";
         var displayName = ReadString(item, "n") ?? instrument.Name;
 
         var snapshot = new MarketSnapshot

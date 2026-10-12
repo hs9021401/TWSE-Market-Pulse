@@ -1,4 +1,5 @@
 using System.Threading;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using TwseWidget.Models;
@@ -7,6 +8,23 @@ using TwseWidget.Services;
 var startupTime = new DateTimeOffset(2026, 9, 8, 9, 58, 30, TimeSpan.FromHours(8));
 var fixturePath = Path.Combine(AppContext.BaseDirectory, "Fixtures", "intraday-0958.json");
 var historyPayload = await File.ReadAllTextAsync(fixturePath);
+var liveTradePayload = await File.ReadAllTextAsync(
+    Path.Combine(AppContext.BaseDirectory, "Fixtures", "mis-00881-nested-trade.json"));
+using var liveTradeDocument = JsonDocument.Parse(liveTradePayload);
+var liveTradeItem = liveTradeDocument.RootElement.GetProperty("msgArray")[0];
+var nestedTrade = TwseMarketPayloadParser.ParseLiveTradeQuote(liveTradeItem);
+using var rootTradeDocument = JsonDocument.Parse(
+    "{\"z\":\"52.75\",\"t\":\"10:58:00\",\"trade\":{\"z\":\"52.80\",\"t\":\"10:57:00\"}}");
+var rootTrade = TwseMarketPayloadParser.ParseLiveTradeQuote(rootTradeDocument.RootElement);
+using var invalidTradeDocument = JsonDocument.Parse(
+    "{\"z\":\"-\",\"t\":\"10:59:59\",\"trade\":{\"z\":\"-\",\"t\":\"10:59:04\"}}");
+var invalidTrade = TwseMarketPayloadParser.ParseLiveTradeQuote(invalidTradeDocument.RootElement);
+var nestedTradeRegression = nestedTrade.Price == 53.15m &&
+                            nestedTrade.Time == "10:59:04";
+var rootTradeCompatibility = rootTrade.Price == 52.75m &&
+                             rootTrade.Time == "10:58:00";
+var invalidTradeFallback = invalidTrade.Price is null &&
+                           invalidTrade.Time == "10:59:59";
 var history = TwseMarketPayloadParser.ParseIntradayHistory(historyPayload, startupTime);
 var stockHistoryPath = Path.Combine(AppContext.BaseDirectory, "Fixtures", "stock-intraday.json");
 var stockHistoryPayload = await File.ReadAllTextAsync(stockHistoryPath);
@@ -162,6 +180,9 @@ if (!hasSessionStart ||
     !openInitialLoadBackfillsHistory ||
     !preOpenManualRefreshSkipsHistory ||
     !etfHistoryRetainsPrices ||
+    !nestedTradeRegression ||
+    !rootTradeCompatibility ||
+    !invalidTradeFallback ||
     !blankSurfaceCanDrag ||
     buttonSurfaceCanDrag ||
     !windowSurfaceCanDrag ||
@@ -174,12 +195,12 @@ if (!hasSessionStart ||
     !layoutsWork)
 {
     Console.Error.WriteLine(
-        $"FAIL: regression detected; points={merged.Count}, staleTimeline={staleQuoteTimelineMoves}, staleGap={staleQuoteGapIsFilled}, internalGap={staleQuoteInternalGapIsFilled}, poll20s={pollIntervalIsTwentySeconds}, postCloseReload={postCloseManualReloadsHistory}, openInitial={openInitialLoadBackfillsHistory}, preOpenSkip={preOpenManualRefreshSkipsHistory}, blank={blankSurfaceCanDrag}, button={buttonSurfaceCanDrag}, window={windowSurfaceCanDrag}, textBox={textBoxSurfaceCanDrag}, searchSafe={searchCancellationIsSafe}, etfSearch={etfSearchWorks}, alphanumericSearch={alphanumericSearchWorks}, watchlistPersists={watchlistPersists}.");
+        $"FAIL: regression detected; points={merged.Count}, nestedTrade={nestedTradeRegression}, rootTrade={rootTradeCompatibility}, invalidTradeFallback={invalidTradeFallback}, staleTimeline={staleQuoteTimelineMoves}, staleGap={staleQuoteGapIsFilled}, internalGap={staleQuoteInternalGapIsFilled}, poll20s={pollIntervalIsTwentySeconds}, postCloseReload={postCloseManualReloadsHistory}, openInitial={openInitialLoadBackfillsHistory}, preOpenSkip={preOpenManualRefreshSkipsHistory}, blank={blankSurfaceCanDrag}, button={buttonSurfaceCanDrag}, window={windowSurfaceCanDrag}, textBox={textBoxSurfaceCanDrag}, searchSafe={searchCancellationIsSafe}, etfSearch={etfSearchWorks}, alphanumericSearch={alphanumericSearchWorks}, watchlistPersists={watchlistPersists}.");
     return 1;
 }
 
 Console.WriteLine(
-    $"PASS: history (including late-starting ETF prices), drag, ETF search, search cancellation, and watchlist persistence regressions are covered; startup {startupTime:HH:mm:ss} produces {merged.Count} points.");
+    $"PASS: nested MIS trade price/time, root-price compatibility, invalid-price fallback, history (including late-starting ETF prices), drag, ETF search, search cancellation, and watchlist persistence regressions are covered; startup {startupTime:HH:mm:ss} produces {merged.Count} points.");
 return 0;
 
 static bool VerifyLateStartingHistory(

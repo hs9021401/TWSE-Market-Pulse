@@ -49,7 +49,10 @@ public static class MarketHistory
         // cadence through both internal and trailing data gaps.
         points = FillMissingIntervals(points, chartEnd);
 
-        points.Add(new ChartPoint(chartEnd, snapshot.Current));
+        if (snapshot.IsLive)
+        {
+            points.Add(new ChartPoint(chartEnd, snapshot.Current));
+        }
 
         return points
             .Where(point => point.Timestamp >= sessionStart && point.Timestamp <= sessionEnd)

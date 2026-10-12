@@ -11,5 +11,6 @@
     <ProjectReference Include="..\TwseWidget.csproj" />
     <None Update="Fixtures\intraday-0958.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Fixtures\stock-intraday.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Fixtures\mis-00881-nested-trade.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
